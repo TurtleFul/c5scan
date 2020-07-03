@@ -95,20 +95,20 @@ def banner():
             "*                auraltension@riseup.net                 *\n"
             "**********************************************************\n" 
     )
-    print banner 
+    print(banner)
 
 def redtext(text):
-    print '\033[91m' + text + '\033[0m'
+    print ('\033[91m' + text + '\033[0m')
 
 def orangetext(text):
-    print '\033[33m' + text + '\033[0m'
+    print ('\033[33m' + text + '\033[0m')
 
 def yellowtext(text):
-    print '\033[36m' + text + '\033[0m'
+    print ('\033[36m' + text + '\033[0m')
 
 def format_url(url):
     if not re.search('^http', url):
-        print "No http:// or https:// provided. Trying http://"
+        print ("No http:// or https:// provided. Trying http://")
         url = 'http://' + url
     if not re.search('/$', url):
         url += '/'
@@ -135,7 +135,7 @@ def check_headers(c):
 def get_robots(c, return_codes, verbose):
     r = c.get('robots.txt')
     if (r.status_code == 200) and return_codes:
-        print "[+] robots.txt found at ", c.url + 'robots.txt'
+        print ("[+] robots.txt found at ", c.url + 'robots.txt')
         if verbose:
             yellowtext(r.content)
 
@@ -149,7 +149,7 @@ def get_version(url):
         return False
 
 def check_updates(conn, versions, return_codes):
-    print "\nEnumerating updates in /updates/"
+    print ("\nEnumerating updates in /updates/")
     #TODO: check that updates dir exists before enumeration attempts?
     updates = []
     for v in versions:
@@ -157,16 +157,16 @@ def check_updates(conn, versions, return_codes):
             path = '/updates/concrete' + v + extension
             r = conn.get(path)
             if r.status_code == 200 and (return_codes or (r.content == '')):
-                print "[+] Update version %s exists" % v
+                print ("[+] Update version %s exists" % v)
                 updates.append(v)
     return updates
 
 def check_readmes(c, readme_locations):
-    print "\nLooking for Readme files"
+    print ("\nLooking for Readme files")
     for i in readme_locations:
         r = c.get(i)
         if r.status_code == 200:
-            print "[+] Found a readme at: ", c.url + i
+            print ("[+] Found a readme at: ", c.url + i)
 
 def check_vulns(versions, known_vulns):
     for i in versions:
@@ -174,7 +174,7 @@ def check_vulns(versions, known_vulns):
             orangetext(
                 '[+] A known vulnerability exists for %s:' % i
             )
-            print known_vulns[i]['title'] + '\n' + known_vulns[i]['url'] + '\n'
+            print (known_vulns[i]['title'] + '\n' + known_vulns[i]['url'] + '\n')
 
 def main():
     parser = argparse.ArgumentParser(description='A c5 scanner')
@@ -190,7 +190,7 @@ def main():
 
     # Format the url and ensure it is reachable
     url = format_url(args.url)
-    print 'URL: ' + url + '\n'
+    print ('URL: ' + url + '\n')
 
     # Connect to host
     conn = Conn(url)
@@ -198,13 +198,13 @@ def main():
     # Some versions didn't return status codes correctly
     return_codes = returns_404(conn)
     if not return_codes:
-        print "[+] Site may not be correctly handling HTTP return codes\n"
+        print ("[+] Site may not be correctly handling HTTP return codes\n")
 
     # Get version from meta tags
     version = get_version(url)
     if version and re.search('\d', version):
         version = version.split(' ')[-1]
-        print "[+] Discovered version %s from meta 'generator' tag" % version
+        print ("[+] Discovered version %s from meta 'generator' tag" % version)
 
     check_headers(conn)
 
@@ -218,22 +218,22 @@ def main():
     check_readmes(conn, readme_locations)
 
     # Check for known vulns
-    print "\nChecking for known vulnerabilities in updates"
+    print ("\nChecking for known vulnerabilities in updates")
     updates = list(set(updates))
     check_vulns(updates, known_vulns)
     if version:
-        print "\nChecking for known vulnerabilities in current version"
+        print ("\nChecking for known vulnerabilities in current version")
         check_vulns(version.split(), known_vulns)
     else:
-        print "\nRunning version unkown. Unable to check known vulnerabilities against version number"
+        print ("\nRunning version unkown. Unable to check known vulnerabilities against version number")
 
-    print "\nFinished."
+    print ("\nFinished.")
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print '\n User Exit'
+        print ('\n User Exit')
     except Exception as e:
-        print "An error has occured. Exiting", e
+        print ("An error has occured. Exiting", e)
         exit(1)
